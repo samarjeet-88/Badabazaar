@@ -1,14 +1,24 @@
 import  {z} from "zod"
 
 export const loginSchema=z.object({
-    email:z.email().optional(),
-    phoneNumber:z.string().length(10).optional()
-}).refine((data)=>{
-    return(
-        (data.email || !data.phoneNumber) && (!data.email || data.phoneNumber) 
-    )
-},{message:"Provider either email or phoneNumber, not both"})  
+    email:z.email(),
+    password:z.string()
+})
+
+export const verifyOtpSchema=z.object({
+    email:z.email(),
+    otp:z.string().length(6)
+})
+
+export const registerSchema=z.object({
+    email:z.email(),
+    password:z.string().min(8,"Password must be atleast 8 characters"),
+    firstName:z.string(),
+    lastName:z.string()
+})
 
 
 
 export type loginDto=z.infer<typeof loginSchema>
+export type registerDto=z.infer<typeof registerSchema>
+export type verifyOtpDto=z.infer<typeof verifyOtpSchema>

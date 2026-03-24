@@ -1,0 +1,122 @@
+openapi: 3.0.0
+info:
+  title: BadaBazaar Auth API
+  description: Authentication API for BadaBazaar backend.
+  version: 1.0.0
+servers:
+  - url: http://localhost:7879/api/v1/badabazaar
+    description: Local backend server (adjust the port and /api/v1 baseUrl to match your .env BASE_URL)
+paths:
+  /auth/login:
+    post:
+      summary: User Login
+      description: Authenticate a user with email and password. If the user does not exist, it directs the client to the registration page.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securepassword123
+      responses:
+        '200':
+          description: Successful authentication or a redirect action triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  registered:
+                    type: boolean
+                  action:
+                    type: string
+              examples:
+                Success:
+                  summary: Logged in successfully
+                  value:
+                    success: true
+                    message: User logged in Successfully
+                Redirect:
+                  summary: User does not exist (Redirect to register)
+                  value:
+                    registered: false
+                    action: REDIRECT_TO_REGISTER
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Invalid email or password
+        '400':
+          description: Validation Error (Zod)
+  /auth/register:
+    post:
+      summary: User Registration
+      description: Register a new user with their email, password, and full name.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  description: Must be at least 8 characters long
+                  example: securepassword123
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User created successfully
+        '400':
+          description: Validation Error (Zod)
