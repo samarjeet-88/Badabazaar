@@ -10,7 +10,7 @@ paths:
   /auth/login:
     post:
       summary: User Login
-      description: Authenticate a user with email and password. If the user does not exist, it directs the client to the registration page.
+      description: Authenticate a user with email and password.
       tags:
         - Auth
       requestBody:
@@ -32,7 +32,12 @@ paths:
                   example: securepassword123
       responses:
         '200':
-          description: Successful authentication or a redirect action triggered
+          description: Successful authentication
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Set accessToken and refreshToken cookies
           content:
             application/json:
               schema:
@@ -42,21 +47,14 @@ paths:
                     type: boolean
                   message:
                     type: string
-                  registered:
-                    type: boolean
-                  action:
-                    type: string
               examples:
                 Success:
                   summary: Logged in successfully
                   value:
                     success: true
-                    message: User logged in Successfully
-                Redirect:
-                  summary: User does not exist (Redirect to register)
-                  value:
-                    registered: false
-                    action: REDIRECT_TO_REGISTER
+                    message: User logged in successfully
+        '400':
+          description: Validation Error (Zod)
         '401':
           description: Unauthorized
           content:
@@ -69,9 +67,20 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: Invalid email or password
-        '400':
-          description: Validation Error (Zod)
+                    example: Invalid email or pas sword
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: REDIRECT_TO_REGISTER
   /auth/register:
     post:
       summary: User Registration
@@ -107,6 +116,11 @@ paths:
       responses:
         '200':
           description: User registered successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Set accessToken and refreshToken cookies
           content:
             application/json:
               schema:
@@ -119,4 +133,45 @@ paths:
                     type: string
                     example: User created successfully
         '400':
+          description: Validation Error or User already exists
+  /auth/refresh:
+    post:
+      summary: Refresh Tokens
+      description: Rotates the access and refresh tokens. Requires userId in the body and refreshToken in the cookies.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  example: "018e7e1..."
+      responses:
+        '200':
+          description: Tokens refreshed successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Rotated accessToken and refreshToken cookies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User refresh and access token rotated successfully
+        '400':
           description: Validation Error (Zod)
+        '401':
+          description: Unauthorized (Invalid or expired refresh token)
